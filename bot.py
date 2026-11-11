@@ -1,10 +1,12 @@
 import asyncio
 import json
 import logging
+import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from aiohttp import web
 from aiogram import Bot, Dispatcher, types
 from aiogram.exceptions import TelegramForbiddenError, TelegramRetryAfter
 from aiogram.filters import Command, CommandStart
@@ -192,8 +194,25 @@ def setup_scheduler():
         )
 
 
+# ---------- Render uchun veb-server ----------
+
+async def handle(request):
+    return web.Response(text="KillZone bot ishlayapti!")
+
+
+async def start_web_server():
+    app = web.Application()
+    app.router.add_get("/", handle)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.environ.get("PORT", 10000))
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+
+
 async def main():
     logging.basicConfig(level=logging.INFO)
+    await start_web_server()
     setup_scheduler()
     scheduler.start()
     print("🚀 Seans eslatma boti ishga tushdi...")
